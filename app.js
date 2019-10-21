@@ -48,13 +48,23 @@ app.route('/articles')
             title: req.body.title,
             content: req.body.content
         })
-        newPost.save((err) => {
-            if (!err) {
-                res.send('Data Posted sucessfully');
+
+        Article.findOne({
+            title: newPost.title
+        }, (err, article) => {
+            if (article) {
+                res.send('This article already exists!');
             } else {
-                res.send(err);
+                newPost.save((err) => {
+                    if (!err) {
+                        res.send('Data Posted sucessfully');
+                    } else {
+                        res.send(err);
+                    }
+                });
             }
-        });
+        })
+       
     })
     .delete((req, res) => {
         Article.deleteMany({}, (err, resp) => {
@@ -82,24 +92,61 @@ app.route('/articles/:requested')
 
 .put((req,res)=>{
     let articlesearch = lodash.capitalize(req.params.requested);
-    Article.updateOne({title:articlesearch},{title:req.body.title,content:req.body.content},(err,resp)=>{
-        if(!err){
-            res.send('Article '+ articlesearch +' was sucessfully updated.')
-        }else{
-            res.send(err);
+    Article.findOne({
+        title: articlesearch
+    }, (err, article) => {
+        if (article) {
+            Article.updateOne({title:articlesearch},{title:req.body.title,content:req.body.content},(err,article)=>{
+                if(!err){
+                    res.send('Article '+ articlesearch +' was sucessfully updated.')
+                }else{
+                    res.send(err);
+                }
+            })
+        } else {
+            res.send('The article you are trying to update doesn\'t exists')
         }
     })
+    
 })
 
 .patch((req,res)=>{
     let articlesearch = lodash.capitalize(req.params.requested);
-    Article.updateOne({title:articlesearch},{$set:req.body},(err)=>{
-        if(!err){
-            res.send('Article '+ articlesearch +' was sucessfully updated.')
+    Article.findOne({
+        title: articlesearch
+    }, (err, article) => {
+        if (article) {
+            Article.updateOne({title:articlesearch},{$set:req.body},(err,article)=>{
+                if(!err){
+                    res.send('Article '+ articlesearch +' was sucessfully updated.')
+                }else{
+                    res.send(err);
+                }
+            })
+        } else if (err){
+            res.send(err)
         }else{
-            res.send(err);
-        }   
+            res.send('The article you are trying to update doesn\'t exists')
+        }
     })
+})
+
+.delete((req,res)=>{
+    let articlesearch = lodash.capitalize(req.params.requested);
+    Article.findOne({title:articlesearch},(err,article)=>{
+        if(article) {
+            Article.deleteOne({title:articlesearch},(err)=>{
+                if(!err){
+                    res.send('Article '+ articlesearch +' was sucessfully deleted.')
+                }else{
+                    res.send(err);
+                }   
+            }) 
+        }else{
+            res.send('The article you are trying to delete doesn\'t exists')
+        }
+    })
+   
 })
 
 app.listen(4000, () => {
