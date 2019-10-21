@@ -68,15 +68,37 @@ app.route('/articles')
 app.route('/articles/:requested')
 
 .get((req, res) => {
-    const articlesearch = lodash.capitalize(req.params.requested);
+    let articlesearch = lodash.capitalize(req.params.requested);
     Article.findOne({
         title: articlesearch
     }, (err, article) => {
-        if (!err) {
+        if (article) {
             res.send(article);
         } else {
-            res.send(err)
+            res.send('None article was found based on the search tag provided.')
         }
+    })
+})
+
+.put((req,res)=>{
+    let articlesearch = lodash.capitalize(req.params.requested);
+    Article.updateOne({title:articlesearch},{title:req.body.title,content:req.body.content},(err,resp)=>{
+        if(!err){
+            res.send('Article '+ articlesearch +' was sucessfully updated.')
+        }else{
+            res.send(err);
+        }
+    })
+})
+
+.patch((req,res)=>{
+    let articlesearch = lodash.capitalize(req.params.requested);
+    Article.updateOne({title:articlesearch},{$set:req.body},(err)=>{
+        if(!err){
+            res.send('Article '+ articlesearch +' was sucessfully updated.')
+        }else{
+            res.send(err);
+        }   
     })
 })
 
